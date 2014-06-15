@@ -1,20 +1,77 @@
-# Reproducible Research: Peer Assessment 1
+Reproducible Research Project 1
+========================================================
+```{r}
+setwd('C:/Users/Ritesh/Desktop/projects/R Working Dir/Reproducible Research/Project 1')
+#Show any code that is needed to
+#1.Load the data (i.e. read.csv())
 
-
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+    activity=read.csv('activity.csv')
+    #1 Daily Activity
+      #.Process/transform the data (if necessary) into a format suitable for your analysis
+      #What is mean total number of steps taken per day?
+      #For this part of the assignment, you can ignore the missing values in the dataset.
+      #1.Make a histogram of the total number of steps taken each day
+        y=aggregate(activity$steps~activity$date,FUN="sum")
+        x11()
+        colnames(y)=c("Date","Steps")
+        hist(y$Steps,xlab="# Steps taken",ylab="# Days",main="Histogram of Number of Days grouped by Steps taken")
+    #2.Calculate and report the mean and median total number of steps taken per day
+      #Mean= 10766.19, Median=10765, code is below
+        Mean=mean(y$Steps) 
+        Median=median(y$Steps) 
+      #What is the average daily activity pattern?
+      #1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+        x=aggregate(steps~interval,data=activity,FUN="mean")
+        plot(x$interval,x$steps,type='l',xlab="Interval",ylab="Steps",main="#Steps by interval")
+      #2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+        #104th interval corresponding to 835th minute
+        x$interval[which(x$steps==max(x$steps),x$interval)]
+```
+#2 Imputing missing values
+    #Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
+    #1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+      # Total 2304 missing values
+```{r}
+      nrow(activity[activity$steps=='NA',])
+    #2.Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+      #Replaced the NAs with Average for that interval
+      nastep=activity[which(is.na(activity$step),TRUE),]
+      nonna=activity[which(!(is.na(activity$step)),TRUE),]
+      nasteplkup=merge(nastep,x,by="interval")
+      lkupfinal=nasteplkup[,c("steps.y","date","interval")]
+      colnames(lkupfinal)=c("steps","date","interval")
+    #3.Create a new dataset that is equal to the original dataset but with the missing data filled in.
+      merged=rbind(lkupfinal,nonna)
+    #4.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. 
+      mergedgrouped=aggregate(merged$steps~merged$date,FUN="sum")
+      colnames(mergedgrouped)=c("Date","Steps")
+      x11()
+      hist(mergedgrouped$Steps,xlab="# Steps taken",ylab="# Days",main="Histogram of Number of Days grouped by Steps taken")
+      #Do these values differ from the estimates from the first part of the assignment? 
+      #Mean remains the same while median has changed.
+      Mean1=mean(mergedgrouped$Steps)
+      Median1=median(mergedgrouped$Steps)
+      #What is the impact of imputing missing data on the estimates of the total daily number of steps?
+      #Total steps per day has increased
+      sum(mergedgrouped$Steps,na.rm=TRUE)>sum(activity$steps,na.rm=TRUE)
+```
+#3 Are there differences in activity patterns between weekdays and weekends?
+    #For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+    #1.Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+```{r}
+    merged$date=as.Date(merged$date)
+    mergedfinal=cbind(weekdays(merged$date),merged)
+    library(timeDate)
+    library(ggplot2)
+    temp=isWeekday(merged$date)
+    temp=gsub("TRUE","Weekday",temp)
+    temp=gsub("False","Weekend",temp)
+    mergedfinal1=cbind(mergedfinal,temp)
+    colnames(mergedfinal1)[5]="IsWkday"
+    groupedmerged=aggregate(mergedfinal1$steps~mergedfinal1$IsWkday+mergedfinal1$interval,FUN="mean")
+    x11()
+    colnames(groupedmerged)=c("IsWkday","interval","steps")
+    qplot(x=interval,y=steps,data=groupedmerged,facets=IsWkday~.,geom="line")
+      
+    #2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
+```      
