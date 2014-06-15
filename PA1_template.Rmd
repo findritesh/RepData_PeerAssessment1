@@ -69,9 +69,10 @@ setwd('C:/Users/Ritesh/Desktop/projects/R Working Dir/Reproducible Research/Proj
     mergedfinal1=cbind(mergedfinal,temp)
     colnames(mergedfinal1)[5]="IsWkday"
     groupedmerged=aggregate(mergedfinal1$steps~mergedfinal1$IsWkday+mergedfinal1$interval,FUN="mean")
+    #2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
+```   
     x11()
     colnames(groupedmerged)=c("IsWkday","interval","steps")
     qplot(x=interval,y=steps,data=groupedmerged,facets=IsWkday~.,geom="line")
       
-    #2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
-```      
+   
